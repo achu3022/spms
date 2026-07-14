@@ -73,6 +73,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = $request->user();
+
+        // Redirect employees to the Welcome League page, others to the Dashboard
+        if ($user && !$user->hasRole(['Super Admin', 'Sales Head (HOD)'])) {
+            return redirect()->route('welcome.league');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

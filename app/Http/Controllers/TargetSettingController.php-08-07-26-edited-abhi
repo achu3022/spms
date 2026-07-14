@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use App\Models\EmployeeProfile;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class TargetSettingController extends Controller
+{
+    public function index()
+    {
+        // Get all employees except Super Admin
+        $users = User::with('employeeProfile')
+            ->whereDoesntHave('roles', function ($q) {
+                $q->where('name', 'Super Admin');
+            })
+            ->get();
+            
+        return view('target-settings.index', compact('users'));
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'target' => 'required|integer|min:0',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        
+        if ($user->employeeProfile) {
+            $user->employeeProfile->update(['target' => $request->target]);
+        } else {
+            // If profile doesn't exist, create a basic one
+            $user->employeeProfile()->create([
+                'target' => $request->target,
+            ]);
+        }
+
+        return redirect()->route('target-settings.index')->with('success', "Target for {$user->name} updated successfully.");
+    }
+}

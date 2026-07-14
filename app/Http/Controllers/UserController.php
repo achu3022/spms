@@ -48,6 +48,7 @@ class UserController extends Controller
             'employee_id' => 'required|string|unique:employee_profiles,employee_id|max:50',
             'designation' => 'nullable|string|max:255',
             'status' => 'required|string|in:active,inactive',
+            'target' => 'nullable|integer|min:0',
             'photo' => 'nullable|image|max:2048',
             'team_id' => 'nullable|exists:teams,id',
         ]);
@@ -74,6 +75,7 @@ class UserController extends Controller
                 'department' => 'Sales',
                 'designation' => $request->designation,
                 'status' => $request->status,
+                'target' => $request->target ?? 10,
                 'photo' => $photoPath,
             ]);
 
@@ -115,6 +117,7 @@ class UserController extends Controller
             'employee_id' => 'required|string|max:50|unique:employee_profiles,employee_id,' . ($user->employeeProfile?->id ?? 0),
             'designation' => 'nullable|string|max:255',
             'status' => 'required|string|in:active,inactive',
+            'target' => 'nullable|integer|min:0',
             'photo' => 'nullable|image|max:2048',
             'team_id' => 'nullable|exists:teams,id',
         ]);
@@ -154,6 +157,7 @@ class UserController extends Controller
                 'department' => 'Sales',
                 'designation' => $request->designation,
                 'status' => $request->status,
+                'target' => $request->target ?? 10,
                 'photo' => $photoPath,
             ];
 

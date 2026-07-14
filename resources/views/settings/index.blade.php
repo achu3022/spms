@@ -42,6 +42,8 @@
                         </div>
                     </div>
                     <p class="text-secondary small mt-3">Points are computed automatically when an executive records status transitions on student enquiries.</p>
+
+
                 </div>
 
                 <!-- Branding Settings -->

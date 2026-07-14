@@ -26,12 +26,14 @@ class ReportController extends Controller
     public function index()
     {
         $branches = Branch::where('status', 'active')->get();
-        $courses = Course::where('status', 'active')->get();
+
         $leadSources = LeadSource::where('status', 'active')->get();
         $user = auth()->user();
         
-        if ($user->hasRole(['Super Admin', 'Sales Head'])) {
-            $employees = User::all();
+        if ($user->hasRole(['Super Admin', 'Sales Head', 'Sales Head (HOD)'])) {
+            $employees = User::whereDoesntHave('roles', function($q) {
+                $q->whereIn('name', ['Super Admin', 'Sales Head (HOD)', 'Sales Head']);
+            })->get();
             $teams = Team::all();
         } elseif ($user->hasRole('Team Leader')) {
             $userTeamId = $user->team ? $user->team->id : null;
@@ -49,7 +51,7 @@ class ReportController extends Controller
             $teams = collect();
         }
 
-        return view('reports.index', compact('branches', 'courses', 'leadSources', 'employees', 'teams'));
+        return view('reports.index', compact('branches', 'leadSources', 'employees', 'teams'));
     }
 
     public function generate(Request $request)
@@ -155,6 +157,9 @@ class ReportController extends Controller
             case 'employee':
                 $viewName = 'reports.templates.employee';
                 $query = User::with(['employeeProfile', 'teams'])
+                    ->whereDoesntHave('roles', function($q) {
+                        $q->whereIn('name', ['Super Admin', 'Sales Head (HOD)', 'Sales Head']);
+                    })
                     ->withCount(['enquiries' => function ($q) use ($startDate, $endDate) {
                         $q->whereBetween('created_at', [$startDate, $endDate]);
                     }]);
@@ -221,7 +226,10 @@ class ReportController extends Controller
             case 'conversion':
                 $viewName = 'reports.templates.conversion';
                 // Conversion ratios by employee
-                $employees = User::with(['employeeProfile'])->get();
+                $employees = User::with(['employeeProfile'])
+                    ->whereDoesntHave('roles', function($q) {
+                        $q->whereIn('name', ['Super Admin', 'Sales Head (HOD)', 'Sales Head']);
+                    })->get();
                 $conversionData = [];
                 
                 foreach ($employees as $emp) {

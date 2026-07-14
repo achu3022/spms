@@ -18,7 +18,7 @@ class PerformanceScoreService
                 
             case 'registration':
             case 'registered':
-                return (int) Setting::get('registration_score', 1);
+                return (int) Setting::get('registration_score', 2);
                 
             case 'admission':
             case 'admitted':

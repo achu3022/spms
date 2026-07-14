@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SMEC Sales Super League 2026</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    @php
+        $colorPrimary = \App\Models\Setting::get('brand_color_primary', '#2D318F');
+        $colorSecondary = \App\Models\Setting::get('brand_color_secondary', '#0070BC');
+        $colorAccent = \App\Models\Setting::get('brand_color_accent', '#00AA9E');
+        $logo = \App\Models\Setting::get('logo');
+    @endphp
+
+    <style>
+        :root {
+            --primary: {{ $colorPrimary }};
+            --secondary: {{ $colorSecondary }};
+            --accent: {{ $colorAccent }};
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 2rem 0; /* Ensures spacing at top and bottom on small screens */
+            overflow-x: hidden; 
+            overflow-y: auto; /* Allow scrolling if content is taller than screen */
+            position: relative;
+        }
+
+        /* Decorative Background Elements */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: float 10s ease-in-out infinite alternate;
+        }
+        body::before {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: -50px;
+            left: -100px;
+        }
+        body::after {
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        .league-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 1);
+            border-radius: 32px;
+            padding: 2.5rem 3rem; /* Reduced padding */
+            max-width: 850px;
+            width: 92%;
+            margin: auto; /* Fix for flexbox align-items center clipping top */
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.06), 0 0 0 1px rgba(255,255,255,0.6) inset;
+            animation: fadeIn 1s ease-out forwards;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brand-logo {
+            max-height: 40px;
+            margin-bottom: 1.5rem;
+            object-fit: contain;
+        }
+
+        .profile-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem; /* Slightly smaller */
+            font-weight: 900;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: #6c757d;
+            margin-bottom: 2.5rem; /* Reduced margin */
+        }
+
+        .countdown-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2.5rem; /* Reduced margin */
+            flex-wrap: wrap;
+        }
+
+        .countdown-box {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem 0.75rem;
+            min-width: 110px;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .countdown-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: var(--primary);
+            opacity: 0.2;
+            transition: background 0.3s ease, opacity 0.3s ease;
+        }
+
+        .countdown-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        }
+
+        .countdown-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.25rem; /* Smaller */
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+            font-variant-numeric: tabular-nums;
+            color: var(--primary);
+        }
+
+        .countdown-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #adb5bd;
+            font-weight: 600;
+        }
+
+        /* Color classes controlled by JS */
+        .status-green .countdown-value { color: var(--accent); }
+        .status-green::before { background: var(--accent); opacity: 1; }
+        
+        .status-yellow .countdown-value { color: #f59f00; }
+        .status-yellow::before { background: #f59f00; opacity: 1; }
+        
+        .status-orange .countdown-value { color: #f76707; }
+        .status-orange::before { background: #f76707; opacity: 1; }
+        
+        .status-red .countdown-value { color: #e03131; }
+        .status-red::before { background: #e03131; opacity: 1; }
+        .status-red { animation: pulse-light 2s infinite; }
+
+        .stats-container {
+            background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.9));
+            border: 1px solid rgba(0,0,0,0.04);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.03) inset;
+        }
+
+        .stat-item {
+            position: relative;
+            flex: 1;
+        }
+
+        .stat-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 15%;
+            height: 70%;
+            width: 1px;
+            background: rgba(0,0,0,0.06);
+        }
+
+        .stat-item h3 {
+            font-size: 0.85rem;
+            color: #868e96;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .stat-item .value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--secondary);
+            line-height: 1.1;
+        }
+
+        .btn-dashboard {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.15rem;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(45, 49, 143, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+        }
+
+        .btn-dashboard:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(45, 49, 143, 0.3);
+            color: white;
+        }
+
+        .btn-dashboard i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-dashboard:hover i {
+            transform: translateX(5px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-30px) scale(1.1); }
+        }
+
+        @keyframes pulse-light {
+            0% { box-shadow: 0 0 0 0 rgba(224, 49, 49, 0.15); }
+            70% { box-shadow: 0 0 0 15px rgba(224, 49, 49, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(224, 49, 49, 0); }
+        }
+
+        /* Adjust sizing for laptops and shorter screens */
+        @media (max-height: 850px) and (min-width: 769px) {
+            .league-card { padding: 1.5rem 2rem; }
+            .brand-logo { max-height: 32px; margin-bottom: 1rem; }
+            .title { font-size: 2.25rem; }
+            .subtitle { font-size: 1.05rem; margin-bottom: 1.5rem; }
+            .countdown-container { margin-bottom: 1.5rem; gap: 0.75rem; }
+            .countdown-box { padding: 0.75rem 0.5rem; min-width: 90px; }
+            .countdown-value { font-size: 2.5rem; }
+            .stats-container { padding: 1rem; margin-bottom: 1.5rem; }
+            .stat-item .value { font-size: 2rem; }
+            .btn-dashboard { padding: 0.8rem 2.5rem; font-size: 1.05rem; }
+        }
+
+        @media (max-width: 768px) {
+            body { 
+                overflow-y: auto; 
+                height: 100%; 
+                min-height: 100vh; 
+                padding: 1.5rem 0.5rem; 
+                align-items: flex-start; /* Allows card to expand downward rather than center cropping */
+            }
+            .league-card { 
+                padding: 1.5rem 1rem; 
+                max-height: none; /* Let it grow fully */
+                margin: auto 0;
+            }
+            .brand-logo { max-height: 30px; margin-bottom: 1rem; }
+            .title { font-size: 1.75rem; }
+            .subtitle { font-size: 0.9rem; margin-bottom: 1.5rem; }
+            .profile-img { width: 35px; height: 35px; }
+            .countdown-container { gap: 0.25rem; margin-bottom: 1.5rem; flex-wrap: nowrap; }
+            .countdown-box { min-width: 0; flex: 1; padding: 0.5rem 0.25rem; }
+            .countdown-value { font-size: 1.5rem; }
+            .countdown-label { font-size: 0.55rem; }
+            .stats-container { flex-direction: row; gap: 0.25rem; padding: 1rem 0.25rem; margin-bottom: 1.5rem; justify-content: space-between; }
+            .stat-item:not(:last-child)::after { display: block; right: 0; top: 15%; height: 70%; width: 1px; }
+            .stat-item:not(:last-child) { border-bottom: none; padding-bottom: 0; width: auto; }
+            .stat-item h3 { font-size: 0.55rem; letter-spacing: 0; margin-bottom: 0.15rem; }
+            .stat-item .value { font-size: 1.25rem; }
+            .btn-dashboard { font-size: 1rem; padding: 0.75rem 1.5rem; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="league-card">
+        @if($logo)
+            <div>
+                <img src="{{ asset('storage/' . $logo) }}" alt="Brand Logo" class="brand-logo">
+            </div>
+        @endif
+
+        <div class="profile-wrapper">
+            @if(Auth::user()->employeeProfile?->photo)
+                <img src="{{ asset('storage/' . Auth::user()->employeeProfile->photo) }}" class="profile-img" alt="Profile">
+            @endif
+            <p class="subtitle mb-0">Welcome back, <strong>{{ explode(' ', trim($user->name))[0] }}</strong>!</p>
+        </div>
+        
+        <h1 class="title">SMEC Sales Battle '26</h1>
+        <p class="text-secondary small mb-4">Every lead counts. Every sale matters.</p>
+
+        <!-- Deadline Countdown -->
+        <div class="countdown-container" id="countdown">
+            <div class="countdown-box">
+                <div class="countdown-value" id="days">00</div>
+                <div class="countdown-label">Days</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-value" id="hours">00</div>
+                <div class="countdown-label">Hours</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-value" id="minutes">00</div>
+                <div class="countdown-label">Minutes</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-value" id="seconds">00</div>
+                <div class="countdown-label">Seconds</div>
+            </div>
+        </div>
+
+        <!-- Score Stats -->
+        @if($isTeamLeader)
+            <div class="text-start ms-2 mb-2"><span class="badge bg-primary px-3 py-2 rounded-pill shadow-sm">My Target</span></div>
+        @endif
+        <div class="stats-container" @if($isTeamLeader) style="margin-bottom: 1.5rem;" @endif>
+            <div class="stat-item">
+                <h3>Target Score</h3>
+                <div class="value">{{ $scoreTarget }}</div>
+            </div>
+            <div class="stat-item">
+                <h3>Score Obtained</h3>
+                <div class="value" style="color: var(--accent);">{{ $scoreThisMonth }}</div>
+            </div>
+            <div class="stat-item">
+                <h3>Remaining Score</h3>
+                <div class="value" style="color: #f59f00;">{{ max(0, $scoreTarget - $scoreThisMonth) }}</div>
+            </div>
+        </div>
+
+        @if($isTeamLeader && $team)
+        <div class="text-start ms-2 mb-2"><span class="badge bg-secondary px-3 py-2 rounded-pill shadow-sm">{{ $team->name }} Target</span></div>
+        <div class="stats-container" style="background: linear-gradient(135deg, rgba(235, 245, 255, 0.8), rgba(255,255,255,0.9));">
+            <div class="stat-item">
+                <h3>Team Target Score</h3>
+                <div class="value">{{ $teamTarget }}</div>
+            </div>
+            <div class="stat-item">
+                <h3>Team Score Obtained</h3>
+                <div class="value" style="color: var(--accent);">{{ $teamScoreThisMonth }}</div>
+            </div>
+            <div class="stat-item">
+                <h3>Remaining Score</h3>
+                <div class="value" style="color: #f59f00;">{{ max(0, $teamTarget - $teamScoreThisMonth) }}</div>
+            </div>
+        </div>
+        @endif
+
+        <a href="{{ route('dashboard') }}" class="btn-dashboard">
+            Enter the Arena <i class="bi bi-arrow-right-short ms-1 fs-4"></i>
+        </a>
+    </div>
+
+    <script>
+        function getEndOfMonth() {
+            const now = new Date();
+            // Go to the first day of next month, then subtract 1 second to get the last moment of current month
+            return new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const target = getEndOfMonth();
+            const diff = target - now;
+
+            if (diff <= 0) {
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                return;
+            }
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diff / 1000 / 60) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+
+            document.getElementById('days').textContent = d.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = h.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = m.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = s.toString().padStart(2, '0');
+
+            // Color logic based on days left
+            let colorClass = '';
+            if (d > 10) {
+                colorClass = 'status-green';
+            } else if (d > 5) {
+                colorClass = 'status-yellow';
+            } else if (d > 2) {
+                colorClass = 'status-orange';
+            } else {
+                colorClass = 'status-red';
+            }
+
+            // Apply color class to countdown boxes
+            const boxes = document.querySelectorAll('.countdown-box');
+            boxes.forEach(box => {
+                // Clear previous status classes
+                box.classList.remove('status-green', 'status-yellow', 'status-orange', 'status-red');
+                // Add current status class
+                if(colorClass) box.classList.add(colorClass);
+            });
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
+</body>
+</html>

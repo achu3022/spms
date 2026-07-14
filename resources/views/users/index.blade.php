@@ -21,6 +21,9 @@
                         <th>Name</th>
                         <th>Contact</th>
                         <th>Team</th>
+                        @hasanyrole('Super Admin|Sales Head (HOD)')
+                        <th>Target</th>
+                        @endhasanyrole
                         <th>Spatie Role</th>
                         <th>Status</th>
                         <th>Last Login</th>
@@ -62,6 +65,11 @@
                                     <span class="text-muted small">No Team</span>
                                 @endif
                             </td>
+                            @hasanyrole('Super Admin|Sales Head (HOD)')
+                            <td>
+                                <span class="badge bg-primary text-white">{{ $user->employeeProfile?->target ?? 10 }}</span>
+                            </td>
+                            @endhasanyrole
                             <td>
                                 <span class="badge bg-secondary py-1.5 px-2.5">{{ $user->roles->first()?->name ?? 'None' }}</span>
                             </td>

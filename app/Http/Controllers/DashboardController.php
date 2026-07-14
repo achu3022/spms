@@ -45,10 +45,16 @@ class DashboardController extends Controller
         $data['today_payments'] = \App\Models\DailyClosing::whereDate('date', $today)->where('closing_type', 'Full Payment')->sum('count');
         $data['today_score'] = Activity::whereDate('created_at', $today)->sum('score');
 
-        // Monthly score
-        $data['monthly_score'] = Activity::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->sum('score');
+        // Monthly growth and total score
+        $thisMonthScore = Activity::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('score');
+        $lastMonthScore = Activity::whereMonth('created_at', now()->subMonth()->month)->whereYear('created_at', now()->subMonth()->year)->sum('score');
+        
+        if ($lastMonthScore > 0) {
+            $data['monthly_growth'] = round((($thisMonthScore - $lastMonthScore) / $lastMonthScore) * 100, 2);
+        } else {
+            $data['monthly_growth'] = $thisMonthScore > 0 ? 100 : 0;
+        }
+        $data['monthly_score'] = $thisMonthScore;
 
         // Top team and employee this month
         $data['top_employee'] = $this->getTopEmployee();
@@ -77,19 +83,16 @@ class DashboardController extends Controller
     protected function salesHeadDashboard()
     {
         $data = [];
-        $data['overall_enquiries'] = \App\Models\DailyClosing::whereIn('closing_type', ['Walk-in', 'Registration'])->sum('count');
-        $data['overall_admissions'] = \App\Models\DailyClosing::where('closing_type', 'Admission')->sum('count');
-        $data['overall_payments'] = \App\Models\DailyClosing::where('closing_type', 'Full Payment')->sum('count');
-        
-        $totalEnquiries = $data['overall_enquiries'];
-        $converted = $data['overall_admissions'] + $data['overall_payments'];
-        $data['conversion_ratio'] = $totalEnquiries > 0 ? round(($converted / $totalEnquiries) * 100, 2) : 0;
 
         // Leaderboards
         $data['employee_leaderboard'] = $this->getEmployeeLeaderboard(5);
         $data['team_leaderboard'] = $this->getTeamLeaderboard();
 
-        // Monthly growth
+        // Top Performers for widgets
+        $data['top_employee'] = $this->getTopEmployee();
+        $data['top_team'] = $this->getTopTeam();
+
+        // Monthly growth and total score
         $thisMonthScore = Activity::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('score');
         $lastMonthScore = Activity::whereMonth('created_at', now()->subMonth()->month)->whereYear('created_at', now()->subMonth()->year)->sum('score');
         
@@ -99,14 +102,6 @@ class DashboardController extends Controller
             $data['monthly_growth'] = $thisMonthScore > 0 ? 100 : 0;
         }
         $data['this_month_score'] = $thisMonthScore;
-
-        // Activity trends
-        $chartData = $this->getDailyTrendData();
-        $data['chart_days'] = $chartData['days'];
-        $data['chart_walkins'] = $chartData['walkins'];
-        $data['chart_registrations'] = $chartData['registrations'];
-        $data['chart_admissions'] = $chartData['admissions'];
-        $data['chart_payments'] = $chartData['payments'];
 
         return view('dashboards.sales_head', $data);
     }
@@ -126,15 +121,18 @@ class DashboardController extends Controller
                 'chart_scores' => collect(),
                 'top_employee' => $this->getTopEmployee(),
                 'top_team' => $this->getTopTeam(),
-                'today_score' => Activity::whereDate('created_at', Carbon::today())->sum('score'),
-                'monthly_score' => Activity::whereMonth('created_at', now()->month)
+                'today_score' => Activity::where('employee_id', $user->id)->whereDate('created_at', Carbon::today())->sum('score'),
+                'monthly_score' => Activity::where('employee_id', $user->id)
+                    ->whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)
                     ->sum('score'),
+                'team_today_score' => 0,
+                'lowest_member' => null,
                 'activity_points' => [
                     ['activity' => 'Walk-in', 'points' => \App\Models\Setting::get('walk_in_score', 1)],
-                    ['activity' => 'Registration', 'points' => \App\Models\Setting::get('registration_score', 1)],
+                    ['activity' => 'Registration', 'points' => \App\Models\Setting::get('registration_score', 2)],
                     ['activity' => 'Admission', 'points' => \App\Models\Setting::get('admission_score', 4)],
-                    ['activity' => 'Full Payment', 'points' => \App\Models\Setting::get('admission_score', 4) + \App\Models\Setting::get('payment_score', 6)],
+                    ['activity' => 'Full Payment', 'points' => \App\Models\Setting::get('payment_score', 6)],
                 ]
             ]);
         }
@@ -148,11 +146,16 @@ class DashboardController extends Controller
             ->whereYear('created_at', now()->year)
             ->sum('score');
             
+        $data['team_today_score'] = Activity::where('team_id', $team->id)
+            ->whereDate('created_at', Carbon::today())
+            ->sum('score');
+            
         // Top Performers for widget
         $data['top_employee'] = $this->getTopEmployee();
         $data['top_team'] = $this->getTopTeam();
-        $data['today_score'] = Activity::whereDate('created_at', Carbon::today())->sum('score');
-        $data['monthly_score'] = Activity::whereMonth('created_at', now()->month)
+        $data['today_score'] = Activity::where('employee_id', $user->id)->whereDate('created_at', Carbon::today())->sum('score');
+        $data['monthly_score'] = Activity::where('employee_id', $user->id)
+            ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->sum('score');
 
@@ -174,6 +177,7 @@ class DashboardController extends Controller
         
         usort($rankings, fn($a, $b) => $b->score <=> $a->score);
         $data['rankings'] = collect($rankings);
+        $data['lowest_member'] = $data['rankings']->last();
 
         // Today's activities
         $data['today_activities'] = Activity::with(['enquiry', 'employee'])
@@ -204,9 +208,9 @@ class DashboardController extends Controller
         // Points reference table
         $data['activity_points'] = [
             ['activity' => 'Walk-in', 'points' => \App\Models\Setting::get('walk_in_score', 1)],
-            ['activity' => 'Registration', 'points' => \App\Models\Setting::get('registration_score', 1)],
+            ['activity' => 'Registration', 'points' => \App\Models\Setting::get('registration_score', 2)],
             ['activity' => 'Admission', 'points' => \App\Models\Setting::get('admission_score', 4)],
-            ['activity' => 'Full Payment', 'points' => \App\Models\Setting::get('admission_score', 4) + \App\Models\Setting::get('payment_score', 6)],
+            ['activity' => 'Full Payment', 'points' => \App\Models\Setting::get('payment_score', 6)],
         ];
 
         return view('dashboards.team_leader', $data);
@@ -220,9 +224,12 @@ class DashboardController extends Controller
         // Top Performers for widget
         $data['top_employee'] = $this->getTopEmployee();
         $data['top_team'] = $this->getTopTeam();
-        $data['monthly_score'] = Activity::whereMonth('created_at', now()->month)
+        $data['monthly_score'] = Activity::where('employee_id', $user->id)
+            ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->sum('score');
+        $data['total_score'] = Activity::where('employee_id', $user->id)->sum('score');
+        $data['target_score'] = $user->employeeProfile->target ?? 0;
         
         // Enquiries and follow-ups
         $data['my_enquiries_count'] = Enquiry::where('assigned_employee_id', $user->id)->count();
@@ -259,9 +266,9 @@ class DashboardController extends Controller
         // Points reference table
         $data['activity_points'] = [
             ['activity' => 'Walk-in', 'points' => \App\Models\Setting::get('walk_in_score', 1)],
-            ['activity' => 'Registration', 'points' => \App\Models\Setting::get('registration_score', 1)],
+            ['activity' => 'Registration', 'points' => \App\Models\Setting::get('registration_score', 2)],
             ['activity' => 'Admission', 'points' => \App\Models\Setting::get('admission_score', 4)],
-            ['activity' => 'Full Payment', 'points' => \App\Models\Setting::get('admission_score', 4) + \App\Models\Setting::get('payment_score', 6)],
+            ['activity' => 'Full Payment', 'points' => \App\Models\Setting::get('payment_score', 6)],
         ];
 
         return view('dashboards.employee', $data);
@@ -283,7 +290,11 @@ class DashboardController extends Controller
 
     private function getEmployeeLeaderboard(int $limit = 10)
     {
-        $users = User::with('employeeProfile', 'teams')->get();
+        $users = User::with('employeeProfile', 'teams')
+            ->whereDoesntHave('roles', function ($q) {
+                $q->whereIn('name', ['Super Admin', 'Sales Head (HOD)']);
+            })
+            ->get();
         $leaderboard = [];
         
         foreach ($users as $user) {
@@ -430,5 +441,43 @@ class DashboardController extends Controller
         }
 
         return compact('days', 'scores');
+    }
+
+    public function teamPerformanceData(Request $request)
+    {
+        $user = Auth::user();
+        $team = $user->team;
+
+        if (!$team) {
+            return response()->json(['error' => 'No team assigned'], 400);
+        }
+
+        $startDate = $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : Carbon::today();
+        $endDate = $request->end_date ? Carbon::parse($request->end_date)->endOfDay() : Carbon::today()->endOfDay();
+
+        $members = $team->users;
+        $performance = [];
+
+        foreach ($members as $member) {
+            $score = Activity::where('employee_id', $member->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->sum('score');
+                
+            $performance[] = [
+                'name' => $member->name,
+                'designation' => $member->employeeProfile?->designation ?? 'Executive',
+                'photo' => $member->employeeProfile?->photo ? asset('storage/' . $member->employeeProfile->photo) : null,
+                'score' => $score
+            ];
+        }
+
+        // Sort by score descending
+        usort($performance, fn($a, $b) => $b['score'] <=> $a['score']);
+
+        return response()->json([
+            'start_date' => $startDate->format('M d, Y'),
+            'end_date' => $endDate->format('M d, Y'),
+            'data' => $performance
+        ]);
     }
 }

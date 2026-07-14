@@ -46,15 +46,6 @@
                 <hr class="text-secondary opacity-25 my-4 col-12">
                 <h5 class="fw-bold text-primary mb-1 col-12">3. Additional Advanced Filters</h5>
 
-                <div class="col-12 col-md-6">
-                    <label class="form-label small fw-semibold">Course</label>
-                    <select name="course_id" class="form-select">
-                        <option value="">All Courses</option>
-                        @foreach($courses as $c)
-                            <option value="{{ $c->id }}">{{ $c->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
 
                 <div class="col-12 col-md-6">
                     <label class="form-label small fw-semibold">Employee</label>

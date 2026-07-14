@@ -11,14 +11,19 @@
             @method('PATCH')
             
             <div class="row g-3">
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-4">
                     <label class="form-label small fw-semibold">Team Name *</label>
                     <input type="text" name="name" class="form-control" required value="{{ old('name', $team->name) }}" placeholder="e.g. Alpha Performers">
                 </div>
 
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-4">
                     <label class="form-label small fw-semibold">Description</label>
                     <input type="text" name="description" class="form-control" value="{{ old('description', $team->description) }}" placeholder="Short details/region">
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-semibold">Monthly Score Target *</label>
+                    <input type="number" name="target" class="form-control" required min="1" value="{{ old('target', $target) }}">
                 </div>
 
                 <div class="col-12 col-md-6">

@@ -14,39 +14,39 @@
         <div class="col-6 col-lg-3">
             <div class="card glass-card p-3 border-0 h-100 position-relative overflow-hidden card-hover">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="text-secondary font-monospace small">TOTAL ENQUIRIES</div>
+                    <div class="text-secondary font-monospace small">COMPANY MONTHLY SCORE</div>
                     <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                        <i class="bi bi-person-fill-add"></i>
+                        <i class="bi bi-star-fill"></i>
                     </div>
                 </div>
-                <div class="fs-2 fw-bold text-primary">{{ $overall_enquiries }}</div>
-                <div class="text-secondary small mt-1"><i class="bi bi-clock-history me-1"></i>Cumulative database</div>
+                <div class="fs-2 fw-bold text-primary">{{ $this_month_score }}</div>
+                <div class="text-secondary small mt-1"><i class="bi bi-graph-up-arrow me-1"></i>Total accumulated points</div>
             </div>
         </div>
         
         <div class="col-6 col-lg-3">
             <div class="card glass-card p-3 border-0 h-100 position-relative overflow-hidden card-hover">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="text-secondary font-monospace small">TOTAL ADMISSIONS</div>
+                    <div class="text-secondary font-monospace small">TOP TEAM</div>
                     <div class="bg-success bg-opacity-10 text-success rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                        <i class="bi bi-award-fill"></i>
+                        <i class="bi bi-people-fill"></i>
                     </div>
                 </div>
-                <div class="fs-2 fw-bold text-success">{{ $overall_admissions }}</div>
-                <div class="text-secondary small mt-1"><i class="bi bi-check-circle-fill text-success me-1"></i>Admitted leads</div>
+                <div class="fs-4 fw-bold text-success text-truncate">{{ $top_team ? $top_team->name : 'N/A' }}</div>
+                <div class="text-secondary small mt-1"><i class="bi bi-trophy-fill text-success me-1"></i>{{ $top_team ? $top_team->score . ' Pts' : '0 Pts' }}</div>
             </div>
         </div>
 
         <div class="col-6 col-lg-3">
             <div class="card glass-card p-3 border-0 h-100 position-relative overflow-hidden card-hover">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="text-secondary font-monospace small">CONVERSION RATIO</div>
+                    <div class="text-secondary font-monospace small">TOP EMPLOYEE</div>
                     <div class="bg-info bg-opacity-10 text-info rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                        <i class="bi bi-graph-up-arrow"></i>
+                        <i class="bi bi-person-fill-check"></i>
                     </div>
                 </div>
-                <div class="fs-2 fw-bold text-info">{{ $conversion_ratio }}%</div>
-                <div class="text-secondary small mt-1"><i class="bi bi-arrow-right-short text-info me-1"></i>Lead to conversion rate</div>
+                <div class="fs-4 fw-bold text-info text-truncate">{{ $top_employee ? $top_employee->name : 'N/A' }}</div>
+                <div class="text-secondary small mt-1"><i class="bi bi-award-fill text-info me-1"></i>{{ $top_employee ? $top_employee->score . ' Pts' : '0 Pts' }}</div>
             </div>
         </div>
 
@@ -68,41 +68,7 @@
         </div>
     </div>
 
-    <!-- Interactive Charts Section -->
-    <div class="row g-4 mb-4">
-        <!-- Daily Activities Chart -->
-        <div class="col-12 col-xl-8">
-            <div class="card glass-card border-0 p-4">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h5 class="fw-bold m-0"><i class="bi bi-activity text-primary me-2"></i>Daily Lead Conversion Trends</h5>
-                    <div class="small text-secondary">Last 7 Days</div>
-                </div>
-                <div style="height: 330px; position: relative;">
-                    <canvas id="hodDailyTrendChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Conversion Breakdown -->
-        <div class="col-12 col-xl-4">
-            <div class="card glass-card border-0 p-4 h-100">
-                <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill text-accent me-2"></i>Lead Status Proportions</h5>
-                <div style="height: 250px; position: relative;" class="d-flex align-items-center justify-content-center">
-                    <canvas id="hodStatusBreakdownChart"></canvas>
-                </div>
-                <div class="row text-center mt-3 g-2">
-                    <div class="col-6">
-                        <div class="small fw-semibold text-success">Admissions</div>
-                        <div class="small font-monospace">{{ $overall_admissions }}</div>
-                    </div>
-                    <div class="col-6">
-                        <div class="small fw-semibold text-primary">Total Leads</div>
-                        <div class="small font-monospace">{{ $overall_enquiries }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Removed Interactive Charts Section per request -->
 
     <!-- Leaderboards Row -->
     <div class="row g-4 mb-4">
@@ -207,109 +173,5 @@
         </div>
     </div>
 
-    @push('scripts')
-    <script>
-        $(document).ready(function() {
-            // 1. Daily Trend Chart (HOD)
-            const dailyCtx = document.getElementById('hodDailyTrendChart').getContext('2d');
-            new Chart(dailyCtx, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($chart_days) !!},
-                    datasets: [
-                        {
-                            label: 'Walk-ins',
-                            data: {!! json_encode($chart_walkins) !!},
-                            borderColor: '#00AA9E',
-                            backgroundColor: 'rgba(0, 170, 158, 0.05)',
-                            fill: true,
-                            tension: 0.35,
-                            borderWidth: 3
-                        },
-                        {
-                            label: 'Registrations',
-                            data: {!! json_encode($chart_registrations) !!},
-                            borderColor: '#0070BC',
-                            backgroundColor: 'rgba(0, 112, 188, 0.05)',
-                            fill: true,
-                            tension: 0.35,
-                            borderWidth: 3
-                        },
-                        {
-                            label: 'Admissions',
-                            data: {!! json_encode($chart_admissions) !!},
-                            borderColor: '#2D318F',
-                            backgroundColor: 'rgba(45, 49, 143, 0.05)',
-                            fill: true,
-                            tension: 0.35,
-                            borderWidth: 3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    family: 'Inter',
-                                    size: 11
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-
-            // 2. Status Breakdown Pie/Doughnut Chart
-            const breakdownCtx = document.getElementById('hodStatusBreakdownChart').getContext('2d');
-            new Chart(breakdownCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Admitted', 'Remaining Enquiries'],
-                    datasets: [{
-                        data: [
-                            {{ $overall_admissions }},
-                            {{ max(0, $overall_enquiries - $overall_admissions) }}
-                        ],
-                        backgroundColor: ['#2D318F', '#e9ecef'],
-                        borderWidth: 2,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: {
-                                    family: 'Inter',
-                                    size: 11
-                                }
-                            }
-                        }
-                    },
-                    cutout: '70%'
-                }
-            });
-        });
-    </script>
-    @endpush
+    <!-- No charts to render -->
 </x-app-layout>

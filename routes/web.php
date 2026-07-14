@@ -11,19 +11,27 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminPerformanceController;
+use App\Http\Controllers\TvDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// TV Dashboard Routes (Publicly accessible for easy TV display)
+Route::get('/tv', [TvDashboardController::class, 'index'])->name('tv.dashboard');
+Route::get('/tv/data', [TvDashboardController::class, 'data'])->name('tv.data');
+
 Route::middleware(['auth'])->group(function () {
     // Password Setup Routes
     Route::get('/setup-password', [\App\Http\Controllers\Auth\PasswordSetupController::class, 'create'])->name('password.setup');
     Route::post('/setup-password', [\App\Http\Controllers\Auth\PasswordSetupController::class, 'store'])->name('password.setup.store');
+    // League Welcome Page
+    Route::get('/welcome-league', [\App\Http\Controllers\LeagueWelcomeController::class, 'index'])->name('welcome.league');
 
-    // Dynamic Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/team/performance-data', [DashboardController::class, 'teamPerformanceData'])->name('team.performance.data');
 
     // Enquiries Module
     Route::resource('enquiries', EnquiryController::class);
@@ -48,11 +56,26 @@ Route::middleware(['auth'])->group(function () {
 
     // Spatie Permission Role Guards (Admin / Sales Head)
     Route::middleware(['role:Super Admin|Sales Head (HOD)'])->group(function () {
+        // Past Activities (Manual Entry)
+        Route::get('/past-activities/existing', [\App\Http\Controllers\PastActivityController::class, 'getExisting'])->name('past-activities.existing');
+        Route::get('/past-activities/create', [\App\Http\Controllers\PastActivityController::class, 'create'])->name('past-activities.create');
+        Route::post('/past-activities', [\App\Http\Controllers\PastActivityController::class, 'store'])->name('past-activities.store');
+
         // Teams Module
         Route::resource('teams', TeamController::class);
 
         // Users / Employees Module
         Route::resource('users', UserController::class);
+
+        // Activity Management / Score Editing
+        Route::get('/activities-manage', [\App\Http\Controllers\ActivityManagementController::class, 'index'])->name('activities-manage.index');
+        Route::post('/activities-manage/adjust', [\App\Http\Controllers\ActivityManagementController::class, 'adjust'])->name('activities-manage.adjust');
+        Route::patch('/activities-manage/{id}', [\App\Http\Controllers\ActivityManagementController::class, 'update'])->name('activities-manage.update');
+        Route::delete('/activities-manage/{id}', [\App\Http\Controllers\ActivityManagementController::class, 'destroy'])->name('activities-manage.destroy');
+
+        // Target Settings
+        Route::get('/target-settings', [App\Http\Controllers\TargetSettingController::class, 'index'])->name('target-settings.index');
+        Route::post('/target-settings', [App\Http\Controllers\TargetSettingController::class, 'update'])->name('target-settings.update');
 
         // Application Settings
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
@@ -63,6 +86,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Super Admin Only Features
+    Route::middleware(['role:Super Admin'])->group(function () {
+        Route::get('/admin/performance', [AdminPerformanceController::class, 'index'])->name('admin.performance.index');
+        Route::get('/admin/performance/export', [AdminPerformanceController::class, 'export'])->name('admin.performance.export');
+    });
 });
 
 require __DIR__.'/auth.php';

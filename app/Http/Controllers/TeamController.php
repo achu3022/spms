@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Setting;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\AuditLogService;
@@ -20,6 +21,9 @@ class TeamController extends Controller
     public function index()
     {
         $teams = Team::with(['users', 'leaders', 'viceLeaders'])->get();
+        foreach ($teams as $team) {
+            $team->target = Setting::get("team_{$team->id}_target", 50);
+        }
         return view('teams.index', compact('teams'));
     }
 
@@ -34,6 +38,7 @@ class TeamController extends Controller
         $request->validate([
             'name' => 'required|string|unique:teams,name|max:255',
             'description' => 'nullable|string',
+            'target' => 'required|integer|min:1',
             'leader_id' => 'nullable|exists:users,id',
             'vice_leader_id' => 'nullable|exists:users,id|different:leader_id',
             'member_ids' => 'nullable|array',
@@ -49,6 +54,8 @@ class TeamController extends Controller
             ]);
 
             $this->syncTeamRelations($team, $request->leader_id, $request->vice_leader_id, $request->member_ids ?? []);
+            
+            Setting::set("team_{$team->id}_target", $request->target);
         });
 
         return redirect()->route('teams.index')->with('success', 'Team created and members assigned successfully.');
@@ -62,8 +69,9 @@ class TeamController extends Controller
         $currentLeaderId = $team->leader?->id;
         $currentViceLeaderId = $team->viceLeader?->id;
         $currentMemberIds = $team->regularMembers()->pluck('users.id')->toArray();
+        $target = Setting::get("team_{$team->id}_target", 50);
 
-        return view('teams.edit', compact('team', 'users', 'currentLeaderId', 'currentViceLeaderId', 'currentMemberIds'));
+        return view('teams.edit', compact('team', 'users', 'currentLeaderId', 'currentViceLeaderId', 'currentMemberIds', 'target'));
     }
 
     public function update(Request $request, Team $team)
@@ -71,6 +79,7 @@ class TeamController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:teams,name,' . $team->id,
             'description' => 'nullable|string',
+            'target' => 'required|integer|min:1',
             'leader_id' => 'nullable|exists:users,id',
             'vice_leader_id' => 'nullable|exists:users,id|different:leader_id',
             'member_ids' => 'nullable|array',
@@ -86,6 +95,8 @@ class TeamController extends Controller
             ]);
 
             $this->syncTeamRelations($team, $request->leader_id, $request->vice_leader_id, $request->member_ids ?? []);
+            
+            Setting::set("team_{$team->id}_target", $request->target);
         });
 
         return redirect()->route('teams.index')->with('success', 'Team updated and members synchronized.');

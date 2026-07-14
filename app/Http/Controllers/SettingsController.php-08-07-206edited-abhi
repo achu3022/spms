@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Setting;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class SettingsController extends Controller
+{
+    public function index()
+    {
+        $teams = \App\Models\Team::all();
+        $teamTargets = [];
+        foreach ($teams as $team) {
+            $teamTargets[$team->id] = Setting::get("team_{$team->id}_target", 50);
+        }
+
+        $settings = [
+            'walk_in_score' => Setting::get('walk_in_score', 1),
+            'registration_score' => Setting::get('registration_score', 1),
+            'admission_score' => Setting::get('admission_score', 4),
+            'payment_score' => Setting::get('payment_score', 6),
+            'brand_color_primary' => Setting::get('brand_color_primary', '#2D318F'),
+            'brand_color_secondary' => Setting::get('brand_color_secondary', '#0070BC'),
+            'brand_color_accent' => Setting::get('brand_color_accent', '#00AA9E'),
+            'logo' => Setting::get('logo'),
+            'monthly_admission_target' => Setting::get('monthly_admission_target', 10),
+        ];
+
+        return view('settings.index', compact('settings', 'teams', 'teamTargets'));
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'walk_in_score' => 'required|integer|min:0',
+            'registration_score' => 'required|integer|min:0',
+            'admission_score' => 'required|integer|min:0',
+            'payment_score' => 'required|integer|min:0',
+            'brand_color_primary' => 'required|string|max:10',
+            'brand_color_secondary' => 'required|string|max:10',
+            'brand_color_accent' => 'required|string|max:10',
+            'logo' => 'nullable|image|max:1024',
+            'monthly_admission_target' => 'required|integer|min:1',
+            'team_targets' => 'nullable|array',
+            'team_targets.*' => 'required|integer|min:1',
+        ]);
+
+        Setting::set('walk_in_score', $request->walk_in_score);
+        Setting::set('registration_score', $request->registration_score);
+        Setting::set('admission_score', $request->admission_score);
+        Setting::set('payment_score', $request->payment_score);
+        Setting::set('monthly_admission_target', $request->monthly_admission_target);
+        
+        if ($request->has('team_targets')) {
+            foreach ($request->team_targets as $teamId => $target) {
+                Setting::set("team_{$teamId}_target", $target);
+            }
+        }
+        
+        Setting::set('brand_color_primary', $request->brand_color_primary);
+        Setting::set('brand_color_secondary', $request->brand_color_secondary);
+        Setting::set('brand_color_accent', $request->brand_color_accent);
+
+        if ($request->hasFile('logo')) {
+            $oldLogo = Setting::get('logo');
+            if ($oldLogo) {
+                Storage::disk('public')->delete($oldLogo);
+            }
+            $logoPath = $request->file('logo')->store('branding', 'public');
+            Setting::set('logo', $logoPath);
+        }
+
+        return redirect()->route('settings.index')->with('success', 'Application settings updated successfully.');
+    }
+}

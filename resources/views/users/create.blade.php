@@ -45,12 +45,12 @@
 
                 <div class="col-12 col-md-6 col-lg-6">
                     <label class="form-label small fw-semibold">Password *</label>
-                    <input type="password" name="password" class="form-control" required placeholder="Minimum 8 characters">
+                    <input type="password" name="password" class="form-control" required placeholder="Minimum 8 characters" autocomplete="new-password">
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-6">
                     <label class="form-label small fw-semibold">Confirm Password *</label>
-                    <input type="password" name="password_confirmation" class="form-control" required placeholder="Re-enter password">
+                    <input type="password" name="password_confirmation" class="form-control" required placeholder="Re-enter password" autocomplete="new-password">
                 </div>
 
                 <hr class="text-secondary opacity-25 my-4 col-12">
@@ -64,6 +64,11 @@
                 <div class="col-12 col-md-6 col-lg-6">
                     <label class="form-label small fw-semibold">Designation</label>
                     <input type="text" name="designation" class="form-control" value="{{ old('designation') }}" placeholder="e.g. Senior executive">
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-6">
+                    <label class="form-label small fw-semibold">Monthly Score Target</label>
+                    <input type="number" name="target" class="form-control" value="{{ old('target', 10) }}" placeholder="e.g. 10" min="0">
                 </div>
 
                 <div class="col-12 col-md-4">

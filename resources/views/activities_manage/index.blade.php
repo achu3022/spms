@@ -1,0 +1,195 @@
+<x-app-layout>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Manage Activities & Scores</h2>
+            <p class="text-secondary small mb-0">Manually adjust employee scores or edit incorrect activity entries.</p>
+        </div>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card glass-card border-0 p-4">
+                <h5 class="fw-bold mb-3">Find Activities</h5>
+                <p class="text-secondary small mb-4">Select an employee and date to view and edit their recorded activities.</p>
+                <form action="{{ route('activities-manage.index') }}" method="GET">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold small">Employee <span class="text-danger">*</span></label>
+                            <select name="employee_id" class="form-select" required>
+                                <option value="">Select Employee...</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ request('employee_id') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Date <span class="text-danger">*</span></label>
+                            <input type="date" name="filter_date" class="form-control" value="{{ request('filter_date') }}" required>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold w-100">Find Activities</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card glass-card border-0 p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="fw-bold mb-0">Recent Activities</h5>
+
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Employee</th>
+                        <th>Activity Type</th>
+                        <th>Score</th>
+                        <th>Remarks</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($activities as $activity)
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ $activity->created_at->format('d M Y') }}</div>
+                                <span class="small text-secondary">{{ $activity->created_at->format('H:i A') }}</span>
+                            </td>
+                            <td>
+                                <div class="fw-bold">{{ $activity->employee->name ?? 'Unknown' }}</div>
+                                <span class="small text-secondary">{{ $activity->team->name ?? 'No Team' }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary py-1.5 px-2.5">
+                                    {{ $activity->activity_type }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {{ $activity->score >= 0 ? 'bg-success' : 'bg-danger' }} py-1.5 px-2.5 fw-bold" style="font-size: 0.9rem;">
+                                    {{ $activity->score > 0 ? '+' : '' }}{{ $activity->score }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="small text-secondary">{{ $activity->remarks ?? 'N/A' }}</span>
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-light text-primary rounded-circle" data-bs-toggle="modal" data-bs-target="#editActivityModal{{ $activity->id }}" title="Edit Score">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form action="{{ route('activities-manage.destroy', $activity->id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to completely delete this activity? This will remove its score.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-light text-danger rounded-circle" title="Delete Activity">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        @push('modals')
+                        <!-- Edit Activity Modal -->
+                        <div class="modal fade" id="editActivityModal{{ $activity->id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg rounded-4">
+                                    <div class="modal-header border-0 pb-0">
+                                        <h5 class="modal-title fw-bold">Edit Activity</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form action="{{ route('activities-manage.update', $activity->id) }}" method="POST">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Employee</label>
+                                                <input type="text" class="form-control bg-light" value="{{ $activity->employee->name ?? 'Unknown' }}" readonly>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Activity Type</label>
+                                                <input type="text" class="form-control bg-light" value="{{ $activity->activity_type }}" readonly>
+                                            </div>
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-4">
+                                                    @php
+                                                        $baseScore = app(\App\Services\PerformanceScoreService::class)->getScoreForActivity($activity->activity_type);
+                                                        $currentCount = $baseScore > 0 ? ($activity->score / $baseScore) : 1;
+                                                    @endphp
+                                                    <label class="form-label small fw-semibold">Count <span class="text-danger">*</span></label>
+                                                    <input type="number" step="0.5" class="form-control count-input" data-base-score="{{ $baseScore }}" value="{{ $currentCount }}" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label small fw-semibold">Score</label>
+                                                    <input type="number" name="score" class="form-control score-input bg-light" value="{{ $activity->score }}" readonly>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label small fw-semibold">Date & Time <span class="text-danger">*</span></label>
+                                                    <input type="datetime-local" name="created_at" class="form-control" value="{{ $activity->created_at->format('Y-m-d\TH:i') }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Remarks</label>
+                                                <input type="text" name="remarks" class="form-control" value="{{ $activity->remarks }}">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0">
+                                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary rounded-pill px-4">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @endpush
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                @if(isset($hasFilters) && $hasFilters)
+                                    No activities found for the selected employee and date.
+                                @else
+                                    Please select an employee and date to view their activities.
+                                @endif
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if(isset($activities) && method_exists($activities, 'links'))
+        <div class="mt-4">
+            {{ $activities->links() }}
+        </div>
+        @endif
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // When Count input changes, calculate the new score based on base_score
+            document.querySelectorAll('.count-input').forEach(function(input) {
+                input.addEventListener('input', function() {
+                    let count = parseFloat(this.value) || 0;
+                    let baseScore = parseFloat(this.getAttribute('data-base-score')) || 0;
+                    
+                    if (baseScore > 0) {
+                        let scoreInput = this.closest('.row').querySelector('.score-input');
+                        if (scoreInput) {
+                            scoreInput.value = Math.round(count * baseScore);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</x-app-layout>

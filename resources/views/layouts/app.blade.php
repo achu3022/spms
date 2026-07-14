@@ -22,6 +22,9 @@
     <!-- Custom CSS -->
     <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
 
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <!-- Dynamic Theme Styling Injection -->
     <style>
         :root {
@@ -30,6 +33,9 @@
             --accent-color: {{ \App\Models\Setting::get('brand_color_accent', '#00AA9E') }};
         }
     </style>
+
+    <!-- PWA Setup -->
+    {!! app(\EragLaravelPwa\Services\PWAService::class)->headTag() !!}
 </head>
 <body class="font-sans antialiased">
     <!-- Dark Mode Initial Verification -->
@@ -40,8 +46,8 @@
     </script>
 
     <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="d-flex align-items-center justify-content-between p-4 border-bottom border-light">
+    <aside class="sidebar d-flex flex-column" id="sidebar">
+        <div class="d-flex align-items-center justify-content-between p-4 border-bottom border-light flex-shrink-0">
             <a href="{{ route('dashboard') }}" class="d-flex align-items-center text-decoration-none gap-2">
                 @php
                     $logo = \App\Models\Setting::get('logo');
@@ -58,8 +64,8 @@
             </button>
         </div>
 
-        <div class="py-4">
-            <nav class="nav flex-column">
+        <div class="py-4 flex-grow-1 overflow-y-auto" style="scrollbar-width: thin;">
+            <nav class="nav flex-column mb-4">
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <i class="bi bi-speedometer2 fs-5"></i>
                     <span>Dashboard</span>
@@ -79,6 +85,16 @@
                 <hr class="mx-3 text-secondary my-3 opacity-25">
                 <div class="px-4 mb-2 text-uppercase text-secondary font-monospace" style="font-size: 0.7rem;">Management</div>
 
+                <a class="nav-link {{ request()->routeIs('past-activities.*') ? 'active' : '' }}" href="{{ route('past-activities.create') }}">
+                    <i class="bi bi-clock-history fs-5"></i>
+                    <span>Past Activities</span>
+                </a>
+
+                <a class="nav-link {{ request()->routeIs('activities-manage.*') ? 'active' : '' }}" href="{{ route('activities-manage.index') }}">
+                    <i class="bi bi-pencil-square fs-5"></i>
+                    <span>Manage Activities</span>
+                </a>
+
                 <a class="nav-link {{ request()->routeIs('teams.*') ? 'active' : '' }}" href="{{ route('teams.index') }}">
                     <i class="bi bi-people-fill fs-5"></i>
                     <span>Teams</span>
@@ -89,9 +105,23 @@
                     <span>Employees</span>
                 </a>
 
+                <a class="nav-link {{ request()->routeIs('target-settings.*') ? 'active' : '' }}" href="{{ route('target-settings.index') }}">
+                    <i class="bi bi-bullseye fs-5"></i>
+                    <span>Target Settings</span>
+                </a>
+
                 <a class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.index') }}">
                     <i class="bi bi-gear-fill fs-5"></i>
                     <span>Settings</span>
+                </a>
+                @endrole
+
+                @role('Super Admin')
+                <hr class="mx-3 text-secondary my-3 opacity-25">
+                <div class="px-4 mb-2 text-uppercase text-secondary font-monospace" style="font-size: 0.7rem;">Analytics</div>
+                <a class="nav-link {{ request()->routeIs('admin.performance.*') ? 'active' : '' }}" href="{{ route('admin.performance.index') }}">
+                    <i class="bi bi-graph-up fs-5"></i>
+                    <span>Performance</span>
                 </a>
                 @endrole
             </nav>
@@ -267,5 +297,8 @@
     </script>
     @stack('modals')
     @stack('scripts')
+    
+    <!-- PWA Service Worker -->
+    {!! app(\EragLaravelPwa\Services\PWAService::class)->registerServiceWorkerScript() !!}
 </body>
 </html>

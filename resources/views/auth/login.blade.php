@@ -152,8 +152,8 @@
         <!-- Left Pane: Leaderboard & Stats -->
         <div class="left-pane">
             <div style="max-width: 600px; margin: 0 auto; width: 100%;">
-                <h1 class="fw-bolder mb-1" style="font-size: 2.5rem; letter-spacing: -1px;">Power Play</h1>
-                <p class="fs-6 mb-4 opacity-75">Current Month Performance Overview</p>
+                <h1 class="fw-bolder mb-1" style="font-size: 2.5rem; letter-spacing: -1px;">Sales Surge</h1>
+                <p class="fs-6 mb-4 opacity-75">This Month's Scorecard</p>
 
                 <div class="row g-3">
                     <div class="col-12 col-xl-7">

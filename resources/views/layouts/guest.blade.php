@@ -88,10 +88,16 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+
+    <!-- PWA Setup -->
+    {!! app(\EragLaravelPwa\Services\PWAService::class)->headTag() !!}
 </head>
 <body>
     <div class="auth-card">
         {{ $slot }}
     </div>
+
+    <!-- PWA Service Worker -->
+    {!! app(\EragLaravelPwa\Services\PWAService::class)->registerServiceWorkerScript() !!}
 </body>
 </html>

@@ -23,6 +23,7 @@ class EmployeeProfile extends Model
         'department',
         'designation',
         'status',
+        'target',
         'last_login_at'
     ];
 

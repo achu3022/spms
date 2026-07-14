@@ -54,7 +54,17 @@
         <div class="col-12 col-md-6">
             <div class="card glass-card border-0 p-4 h-100 bg-opacity-75">
                 <div class="d-flex align-items-center gap-3">
-                    <span class="fs-1">🏆</span>
+                    @if($topEmployee)
+                        @if($topEmployee->photo)
+                            <img src="{{ asset('storage/' . $topEmployee->photo) }}" width="70" height="70" class="rounded-circle object-fit-cover flex-shrink-0 shadow-sm border border-2 border-primary">
+                        @else
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm border border-2 border-primary" style="width: 70px; height: 70px; font-size: 1.75rem; font-weight: bold;">
+                                {{ strtoupper(substr($topEmployee->name, 0, 2)) }}
+                            </div>
+                        @endif
+                    @else
+                        <span class="fs-1" style="font-size: 4rem;">🏆</span>
+                    @endif
                     <div>
                         <div class="small text-secondary font-monospace">TOP INDIVIDUAL PERFORMER</div>
                         <h4 class="fw-bold text-primary mb-1">{{ $topEmployee ? $topEmployee->name : 'N/A' }}</h4>
@@ -103,9 +113,9 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             @if($record->photo)
-                                                <img src="{{ asset('storage/' . $record->photo) }}" width="35" height="35" class="rounded-circle object-fit-cover flex-shrink-0">
+                                                <img src="{{ asset('storage/' . $record->photo) }}" width="50" height="50" class="rounded-circle object-fit-cover flex-shrink-0 shadow-sm border border-2 border-primary border-opacity-25">
                                             @else
-                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm border border-2 border-primary border-opacity-25" style="width: 50px; height: 50px; font-size: 1.1rem; font-weight: 500;">
                                                     {{ strtoupper(substr($record->name, 0, 2)) }}
                                                 </div>
                                             @endif

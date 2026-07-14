@@ -1,0 +1,21 @@
+{
+    "name": "SPMS - SMEC Labs",
+    "short_name": "SPMS",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "description": "SPMS - SMEC Labs Application",
+    "theme_color": "#2D318F",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "logo.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

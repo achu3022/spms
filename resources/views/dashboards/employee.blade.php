@@ -13,25 +13,37 @@
 
     <!-- Quick Stats Grid -->
     <div class="row g-3 mb-4 animate-fade-in">
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg-2">
             <div class="card glass-card p-3 border-0 h-100 text-center">
                 <div class="text-secondary font-monospace small mb-1">TODAY'S POINTS</div>
                 <div class="fs-1 fw-bold text-success">{{ $today_score }}</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg-2">
             <div class="card glass-card p-3 border-0 h-100 text-center">
                 <div class="text-secondary font-monospace small mb-1">RECENT CLOSINGS</div>
                 <div class="fs-1 fw-bold text-primary">{{ $daily_closings->sum('count') }}</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card glass-card p-3 border-0 h-100 text-center">
+                <div class="text-secondary font-monospace small mb-1">TOTAL SCORE</div>
+                <div class="fs-1 fw-bold text-secondary">{{ $total_score }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card glass-card p-3 border-0 h-100 text-center">
+                <div class="text-secondary font-monospace small mb-1">TARGET SCORE</div>
+                <div class="fs-1 fw-bold text-dark">{{ $target_score }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
             <div class="card glass-card p-3 border-0 h-100 text-center">
                 <div class="text-secondary font-monospace small mb-1">MY RANK</div>
                 <div class="fs-1 fw-bold text-warning">#{{ $my_rank }}</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg-2">
             <div class="card glass-card p-3 border-0 h-100 text-center">
                 <div class="text-secondary font-monospace small mb-1">MY TEAM RANK</div>
                 <div class="fs-1 fw-bold text-info">#{{ $my_team_rank }}</div>
@@ -187,22 +199,21 @@
                                 <div class="form-text text-muted small" style="font-size: 0.7rem;">You can only add closing data for today.</div>
                             </div>
 
-                            <!-- Closing Type -->
-                            <div class="col-12">
-                                <label class="form-label small fw-semibold">Type of Closing *</label>
-                                <select name="closing_type" class="form-select" required>
-                                    <option value="" disabled selected>Select closing type</option>
-                                    <option value="Walk-in">Walk-in</option>
-                                    <option value="Registration">Registration</option>
-                                    <option value="Admission">Admission</option>
-                                    <option value="Full Payment">Full Payment</option>
-                                </select>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Walk-ins Count</label>
+                                <input type="number" name="walkin_count" class="form-control" min="0" placeholder="e.g. 5">
                             </div>
-
-                            <!-- Count -->
-                            <div class="col-12">
-                                <label class="form-label small fw-semibold">Number of Closings *</label>
-                                <input type="number" name="count" class="form-control" min="1" placeholder="e.g. 5" required>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Registration</label>
+                                <input type="number" name="registration_count" class="form-control" min="0" placeholder="e.g. 2">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Admission</label>
+                                <input type="number" name="admission_count" class="form-control" min="0" placeholder="e.g. 1">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">One Time Payment</label>
+                                <input type="number" name="payment_count" class="form-control" min="0" placeholder="e.g. 1">
                             </div>
                         </div>
                     </div>
